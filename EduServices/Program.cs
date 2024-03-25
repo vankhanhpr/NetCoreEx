@@ -10,6 +10,8 @@ using ModelClassLibrary.interfaces;
 using Microsoft.IdentityModel.Tokens;
 using ModelClassLibrary.area.auth;
 using System.Text;
+using EduServices.services.test;
+using EduServices.services.test.impl;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +27,7 @@ builder.Services.AddDbContext<DataContext>(options =>
 builder.Services.AddTransient<IHashPass, HashPass>();
 builder.Services.AddTransient<IAuth, AuthImpl>();
 builder.Services.AddTransient<IUser, UserImpl>();
+builder.Services.AddTransient<ITest, TestImpl>();
 
 //authen
 builder.Services.Configure<Audience>(configuration.GetSection("Audience"));

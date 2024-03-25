@@ -12,7 +12,7 @@ namespace FuBonServices.data
         public DataContext(DbContextOptions<DataContext> options) : base(options)
         {
         }
-        public DbSet<User> user { get; set; }
+        public DbSet<User> users { get; set; }
 
         protected override void OnModelCreating(ModelBuilder builder)
         {
