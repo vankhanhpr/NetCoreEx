@@ -14,11 +14,11 @@ using EduServices.services.test;
 using EduServices.services.test.impl;
 
 var builder = WebApplication.CreateBuilder(args);
-
+var configuration = builder.Configuration;
 // Add services to the container.
 
 builder.Services.AddControllers();
-var configuration = builder.Configuration;
+
 //Connection Db
 builder.Services.AddDbContext<DataContext>(options =>
             options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
