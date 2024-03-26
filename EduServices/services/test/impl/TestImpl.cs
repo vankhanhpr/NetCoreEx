@@ -4,8 +4,11 @@ using ModelClass.respond;
 using System.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Data.SqlClient;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using System.Data.Common;
+using System.Text.Json;
+using ModelClass.edu;
+using Azure.Core;
+using System.Collections.Generic;
 
 namespace EduServices.services.test.impl
 {
@@ -17,46 +20,77 @@ namespace EduServices.services.test.impl
             m_configuration = _configuration;
         }
 
-        public async Task<dynamic> test()
+        public async Task<dynamic> test(NLPC_Request rq)
         {
-            DataRespond data = new DataRespond();
-
+            Response rp = new Response(200, "Success", null, 0);
             try
             {
-                using (SqlConnection connection = new SqlConnection(m_configuration.GetSection("ConnectionStrings").GetSection("DefaultConnection").Value))
+                if (rq.MaHocKy != 1 || (rq.MaHocKy != 2))
                 {
-                    using (SqlCommand command = connection.CreateCommand())
+                    rp = new Response(500, "Học kỳ không tồn tại", null, 0);
+                    return rp;
+                }
+
+                SQL_function sql_function = new SQL_function();
+                String strConnStringUd = sql_function.returnConnString("sqlconnStringCSDLW");
+                SqlConnection con = new SqlConnection(strConnStringUd);
+                con.Open();
+                SqlTransaction trans = con.BeginTransaction();
+                //Check lớp học
+                var str = "select count(*) as total from LOP where  MA_TRUONG = @MA_TRUONG AND MA_NAM_HOC = @MA_NAM_HOC";
+                SqlCommand cmd = new SqlCommand(str);
+                cmd.Parameters.Add("@MA_TRUONG", SqlDbType.VarChar).Value = rq.MaTruong;
+                cmd.Parameters.Add("@MA_NAM_HOC", SqlDbType.VarChar).Value = rq.MaNamHoc;
+                String res = sql_function.GetData_Json(cmd, "sqlconnStringCSDLW");
+                List<Lop> dshs = JsonSerializer.Deserialize<List<Lop>>(res);
+
+                if(dshs.Count() == 0)
+                {
+                    rp = new Response(500, "Lớp học "+rq.ID_LOP+" không tồn tại", null, 0);
+                    return rp;
+                }
+                //Check học sinh
+                str = "select ID_TRUONG,ID_LOP,ID,MA,MA_SO_GD,MA_KHOI,MA_CAP_HOC from HOC_SINH where  ID_LOP = @ID_LOP and MA_TRUONG =@MA_TRUONG";
+                cmd = new SqlCommand(str);
+                cmd.Parameters.Add("@ID_LOP", SqlDbType.VarChar).Value = rq.ID_LOP;
+                cmd.Parameters.Add("=@MA_TRUONG ", SqlDbType.VarChar).Value = rq.MaTruong;
+                res = sql_function.GetData_Json(cmd, "sqlconnStringCSDLW");
+                List<HocSinhChuyenCan>  listHs = JsonSerializer.Deserialize<List<HocSinhChuyenCan>>(res);
+                if (listHs.Count() == 0)
+                {
+                    rp = new Response(500, "Không có học sinh nào trong lớp: " + rq.ID_LOP + " ,trường: "+ rq.MaTruong, null, 0);
+                    return rp;
+                }
+                // Lấy danh đánh giá năng lực phẩm chất
+                str = "SELECT ID, MA_NAM_HOC, MA_SO_GD, ID_PHONG_GD, MA_PHONG_GD, ID_TRUONG, MA_TRUONG, ID_HOC_SINH, ID_LOP_MON, HOC_KY, MA_MON_HOC,MA_HS_BGD" +
+                    "FROM dbo.DANH_GIA_DINH_KY_C1 " +
+                    "WHERE MA_NAM_HOC = @MaNamHoc AND MA_TRUONG = @MaTruong AND HOC_KY = @MaHocKy and ID_LOP = @ID_LOP";
+
+                cmd = new SqlCommand(str);
+                cmd.Parameters.Add("@MaNamHoc", SqlDbType.VarChar).Value = rq.MaNamHoc;
+                cmd.Parameters.Add("=@MaTruong ", SqlDbType.VarChar).Value = rq.MaTruong;
+                cmd.Parameters.Add("=@MaHocKy ", SqlDbType.VarChar).Value = rq.MaHocKy;
+                cmd.Parameters.Add("=@ID_LOP ", SqlDbType.VarChar).Value = rq.ID_LOP;
+                res = sql_function.GetData_Json(cmd, "sqlconnStringCSDLW");
+                List<NLPC_Data> listNLPC = JsonSerializer.Deserialize<List<NLPC_Data>>(res);
+
+                //check nếu tồn tại thì update không tồn tại thì check học sinh đó tồn tại hay không
+                //Nếu học sinh tồn tại thì cho phép insert, nếu không tồn tại học sinh thì báo lỗi học sinh đó
+
+                foreach(var nl in listNLPC)
+                {
+                    foreach(var hs in rq.Data)
                     {
-                        connection.Open();
-                        command.CommandText = "select * from users where username = 'admin'";
-                        //command.Parameters.AddWithValue("@username", "admin");
-
-                        //command.Parameters.AddWithValue("@admin" , "admin");
-
-                        command.CommandType = CommandType.Text;
-                        DataTable table = new DataTable();
-                        using (var reader = command.ExecuteReader())
+                        if(nl.MA_HS_BGD  == hs.MA_HS_BGD)
                         {
-                            table.Load(reader);
-                            //var dictionary = new Dictionary<string, List<object>>();
-                            //foreach (DataColumn dataColumn in table.Columns)
-                            //{
-                            //    var columnValueList = new List<object>();
 
-                            //    foreach (DataRow dataRow in table.Rows)
-                            //    {
-                            //        columnValueList.Add(dataRow[dataColumn.ColumnName]);
-                            //    }
-
-                            //    dictionary.Add(dataColumn.ColumnName, columnValueList);
-                            //}
-                            data.data = table;
                         }
-                        command.Parameters.Clear();
-                        connection.Close();
-                        return data;
                     }
                 }
+                
+                //con.Close();
+                //trans.Commit();
+                return rp;
             }
             catch
             {
