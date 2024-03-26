@@ -76,14 +76,33 @@ namespace EduServices.services.test.impl
 
                 //check nếu tồn tại thì update không tồn tại thì check học sinh đó tồn tại hay không
                 //Nếu học sinh tồn tại thì cho phép insert, nếu không tồn tại học sinh thì báo lỗi học sinh đó
-
+                int totalNLUpdate =0;//tổng update
                 foreach(var nl in listNLPC)
                 {
                     foreach(var hs in rq.Data)
                     {
-                        if(nl.MA_HS_BGD  == hs.MA_HS_BGD)
+                        if(nl.MA_HS_BGD  == hs.MA_HS_BGD && nl.HOC_KY == rq.MaHocKy && nl.DOT_DANH_GIA == hs.DOT_DANH_GIA)
                         {
-
+                            // Thấy giống là update thôi ngại ngần gì
+                            str = 
+                                "UPDATE BO_GIAO_DUC_2023.dbo.DANH_GIA_NLPC_C1 SET " +
+                                "TT22X_NL_TU_CHU_TU_HOC_GK = NL_TU_CHU_TU_HOC," +
+                                "TT22X_NL_GIAO_TIEP_HOP_TAC_GK=NL_GIAO_TIEP_HOP_TAC," +
+                                "TT22X_NL_GQUYET_VDE_SANG_TAO_GK=NL_GQUYET_VDE_SANG_TAO," +
+                                "TT22X_NL_NGON_NGU_GK=NL_NGON_NGU," +
+                                "TT22X_NL_TINH_TOAN_GK=NL_TINH_TOAN," +
+                                "TT22X_NL_KHOA_HOC_GK=NL_KHOA_HOC," +
+                                "TT22X_NL_THAM_MI_GK=NL_THAM_MI," + 
+                                "TT22X_NL_THE_CHAT_GK=NL_THE_CHAT," +
+                                "TT22X_PC_YEU_NUOC_GK=PC_YEU_NUOC," +
+                                "TT22X_PC_NHAN_AI_GK=PC_NHAN_AI," +
+                                "TT22X_PC_CHAM_CHI_GK=PC_CHAM_CHI," +
+                                "TT22X_PC_TRUNG_THUC_GK=PC_TRUNG_THUC," +
+                                "TT22X_PC_TRACH_NHIEM_GK=PC_TRACH_NHIEM," +
+                                "NXNL_GK=NXNL,NXNL_DAC_THU_GK=NXNL_DAC_THU," +
+                                "NXPC_GK=NXPC,NGAY_SUA = GETDATE()," +
+                                "NGUOI_SUA = @ID_NGUOI_DUNG" +
+                                "WHERE ID_HOCSINH = @ID_HOCSINH AND HOC_KY =@HOC_KY AND DOT_DANH_GIA = @DOT_DANH_GIA";
                         }
                     }
                 }
