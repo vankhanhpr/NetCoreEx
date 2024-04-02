@@ -38,6 +38,7 @@ namespace ModelClass.edu
             public string PC_TRUNG_THUC { get; set; }
             public string PC_TRACH_NHIEM { get; set; }
             public string NXNL { get; set; }
+            public string NXNL_GK { get; set; }
             public string NXNL_DAC_THU { get; set; }
             public string NXPC { get; set; }
         }
