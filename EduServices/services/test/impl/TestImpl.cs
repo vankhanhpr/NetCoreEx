@@ -33,7 +33,7 @@ namespace EduServices.services.test.impl
                 }
 
                 SQL_function sql_function = new SQL_function();
-                String strConnStringUd = sql_function.returnConnString("sqlconnStringCSDLW");
+                string strConnStringUd = sql_function.returnConnString("sqlconnStringCSDLW");
                 SqlConnection con = new SqlConnection(strConnStringUd);
                 con.Open();
                 SqlTransaction trans = con.BeginTransaction();
@@ -43,7 +43,7 @@ namespace EduServices.services.test.impl
                 cmd.Parameters.Add("@MA_TRUONG", SqlDbType.VarChar).Value = rq.MaTruong;
                 cmd.Parameters.Add("@MA_NAM_HOC", SqlDbType.VarChar).Value = rq.MaNamHoc;
                 cmd.Parameters.Add("@ID_LOP", SqlDbType.VarChar).Value = rq.ID_LOP;
-                String res = sql_function.GetData_Json(cmd, "sqlconnStringCSDLW");
+                string res = sql_function.GetData_Json(cmd, "sqlconnStringCSDLW");
                 List<Lop> dshs = JsonSerializer.Deserialize<List<Lop>>(res);
 
                 if (dshs.Count() == 0)
